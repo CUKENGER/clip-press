@@ -8,9 +8,13 @@
 // (В TS мы просто пишем import, в Rust сначала объявляем модуль через `mod`).
 mod detector;
 
+mod probe;
+
 // После того как модуль объявлен через `mod`, мы можем использовать `use`
 // для импорта конкретных сушностей из него:
 use detector::{check_all_dependencies, DependenciesStatus};
+use probe::{probe_file, MediaInfo};
+use std::path::PathBuf;
 
 // ============================================================================
 // КОМАНДЫ TAURI (RPC / IPC мост между Rust и React)
@@ -23,16 +27,34 @@ use detector::{check_all_dependencies, DependenciesStatus};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
-fn check_dependencies(
+async fn check_dependencies(
     custom_ffmpeg: Option<String>,
     custom_ffprobe: Option<String>,
-) -> DependenciesStatus {
+) -> Result<DependenciesStatus, String> {
     // `.as_deref()`:
     // Функция `check_all_dependencies` ждет `Option<&str>` (дешевую ссылку на срез строки),
     // а фронтенд прислал нам `Option<String>` (полноценную строку, владеющую памятью).
     // Метод `.as_deref()` временно превращает `&Option<String>` в `Option<&str>`
     // без лишнего клонирования и выделения памяти в куче.
-    check_all_dependencies(custom_ffmpeg.as_deref(), custom_ffprobe.as_deref())
+    tauri::async_runtime::spawn_blocking(move || {
+        check_all_dependencies(custom_ffmpeg.as_deref(), custom_ffprobe.as_deref())
+    })
+    .await
+    .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn inspect_media_file(
+    file_path: String,
+    custom_ffprobe: Option<String>,
+) -> Result<MediaInfo, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let executable = custom_ffprobe.as_deref().unwrap_or("ffprobe");
+        let path = PathBuf::from(file_path);
+        probe_file(executable, &path)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 // ============================================================================
@@ -47,7 +69,10 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         // `generate_handler!` - макрос Tauri, создающий диспетчер команд.
         // Здесь мы перечисляем через запятую все функции с атрибутом `#[tauri::command]`.
-        .invoke_handler(tauri::generate_handler![check_dependencies])
+        .invoke_handler(tauri::generate_handler![
+            check_dependencies,
+            inspect_media_file
+        ])
         // `generate_context!` читает файл конфигурации `tauri.conf.json` во время сборки
         .run(tauri::generate_context!())
         // `.expect(...)` - обработка паники. Если приложение не смогло инициализироваться
