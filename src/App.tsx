@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import type { DependenciesStatus, MediaInfo } from "./types";
+import { DependencyStatusCard } from "./features/dependencies/DependencyStatusCard";
+import { useDependencies } from "./features/dependencies/useDependencies";
+import type { MediaInfo } from "./types";
 import "./App.css";
 
 function formatBytes(bytes: number): string {
@@ -24,30 +26,11 @@ function formatDuration(seconds: number): string {
 }
 
 function App() {
-  const [status, setStatus] = useState<DependenciesStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const dependencies = useDependencies();
 
   const [mediaInfo, setMediaInfo] = useState<MediaInfo | null>(null);
   const [inspecting, setInspecting] = useState(false);
   const [mediaError, setMediaError] = useState<string | null>(null);
-
-  async function refreshDependencies() {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await invoke<DependenciesStatus>("check_dependencies", {
-        customFfmpeg: null,
-        customFfprobe: null,
-      });
-      setStatus(result);
-    } catch (err) {
-      setError(String(err));
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function chooseAndInspectFile() {
     setMediaError(null);
@@ -59,29 +42,13 @@ function App() {
           {
             name: "Видео и изображения",
             extensions: [
-              "mp4",
-              "mkv",
-              "mov",
-              "webm",
-              "avi",
-              "m4v",
-              "mpeg",
-              "mpg",
-              "3gp",
-              "png",
-              "jpg",
-              "jpeg",
-              "webp",
-              "gif",
-              "bmp",
-              "tif",
-              "tiff",
+              "mp4", "mkv", "mov", "webm", "avi", "m4v", "mpeg", "mpg", "3gp",
+              "png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff",
             ],
           },
         ],
       });
 
-      // Пользователь мог закрыть диалог. В этом случае ничего не запускаем.
       if (typeof selected !== "string") {
         return;
       }
@@ -102,10 +69,6 @@ function App() {
     }
   }
 
-  useEffect(() => {
-    void refreshDependencies();
-  }, []);
-
   return (
     <main className="container">
       <header>
@@ -113,31 +76,12 @@ function App() {
         <p className="subtitle">Конвертация и сжатие медиа</p>
       </header>
 
-      <section className="card">
-        <div className="card-header">
-          <h2>Системные зависимости</h2>
-          <button onClick={refreshDependencies} disabled={loading}>
-            {loading ? "Проверка..." : "Обновить статус"}
-          </button>
-        </div>
-
-        {error && (
-          <div className="alert error">Ошибка вызова бэкенда: {error}</div>
-        )}
-
-        {status && (
-          <div className="deps-list">
-            <DependencyItem name="FFmpeg" status={status.ffmpeg} />
-            <DependencyItem name="FFprobe" status={status.ffprobe} />
-
-            {!status.all_available && (
-              <div className="alert warning">
-                Для работы приложения требуются FFmpeg и FFprobe.
-              </div>
-            )}
-          </div>
-        )}
-      </section>
+      <DependencyStatusCard
+        status={dependencies.status}
+        loading={dependencies.loading}
+        error={dependencies.error}
+        onRefresh={() => void dependencies.refresh()}
+      />
 
       <section className="card media-card">
         <div className="card-header">
@@ -216,27 +160,6 @@ function App() {
         )}
       </section>
     </main>
-  );
-}
-
-function DependencyItem({
-  name,
-  status,
-}: {
-  name: string;
-  status: DependenciesStatus["ffmpeg"];
-}) {
-  return (
-    <div className={`dep-item ${status.available ? "ok" : "fail"}`}>
-      <div className="dep-title">
-        <strong>{name}:</strong>{" "}
-        <span>{status.available ? "Доступен" : "Не найден"}</span>
-      </div>
-
-      {status.version && <div className="dep-detail">{status.version}</div>}
-      {status.path && <div className="dep-path">Путь: {status.path}</div>}
-      {status.error && <div className="dep-error">Ошибка: {status.error}</div>}
-    </div>
   );
 }
 
