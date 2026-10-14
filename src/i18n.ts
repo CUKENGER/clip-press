@@ -33,6 +33,8 @@ const ru = {
   fps: "кадр/с",
   megabitsPerSecond: "Мбит/с",
   language: "Язык",
+  lightTheme: "Светлая тема",
+  darkTheme: "Тёмная тема",
 } as const;
 
 type TranslationKey = keyof typeof ru;
@@ -70,6 +72,8 @@ const en: Record<TranslationKey, string> = {
   fps: "fps",
   megabitsPerSecond: "Mbps",
   language: "Language",
+  lightTheme: "Light theme",
+  darkTheme: "Dark theme",
 };
 
 export type Translate = (key: TranslationKey) => string;

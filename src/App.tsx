@@ -5,6 +5,8 @@ import { MediaInfoCard } from "./features/media/MediaInfoCard";
 import { useMediaInspection } from "./features/media/useMediaInspection";
 import { translate, type Locale, type Translate } from "./i18n";
 import "./App.css";
+import { ThemeToggle } from "./features/appearance/ThemeToggle";
+import { useTheme } from "./features/appearance/useTheme";
 
 function App() {
   const [locale, setLocale] = useState<Locale>(() => {
@@ -17,6 +19,7 @@ function App() {
   }, [locale]);
 
   const t: Translate = (key) => translate(locale, key);
+  const { theme, toggleTheme } = useTheme();
   const dependencies = useDependencies();
   const media = useMediaInspection();
 
@@ -39,6 +42,7 @@ function App() {
             <option value="en">English</option>
           </select>
         </label>
+        <ThemeToggle theme={theme} onToggle={toggleTheme} t={t} />
       </header>
 
       <DependencyStatusCard
