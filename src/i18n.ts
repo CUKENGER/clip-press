@@ -1,0 +1,79 @@
+export type Locale = "ru" | "en";
+
+const ru = {
+  appSubtitle: "Конвертация и сжатие медиа",
+  dependenciesTitle: "Системные зависимости",
+  refreshStatus: "Обновить статус",
+  checking: "Проверка...",
+  backendCallError: "Ошибка вызова бэкенда",
+  requiresTools: "Для работы приложения требуются FFmpeg и FFprobe.",
+  available: "Доступен",
+  notFound: "Не найден",
+  path: "Путь",
+  processError: "Ошибка",
+  mediaInfo: "Информация о файле",
+  analyzing: "Анализирую...",
+  chooseFile: "Выбрать файл",
+  inspectError: "Не удалось прочитать файл",
+  file: "Файл",
+  type: "Тип",
+  video: "Видео",
+  image: "Изображение",
+  audio: "Аудио",
+  unknown: "Неизвестно",
+  format: "Формат",
+  size: "Размер",
+  bytes: "байт",
+  duration: "Длительность",
+  resolution: "Разрешение",
+  videoCodec: "Видеокодек",
+  audioCodec: "Аудиокодек",
+  frameRate: "Частота кадров",
+  bitrate: "Битрейт",
+  fps: "кадр/с",
+  megabitsPerSecond: "Мбит/с",
+  language: "Язык",
+} as const;
+
+type TranslationKey = keyof typeof ru;
+
+const en: Record<TranslationKey, string> = {
+  appSubtitle: "Media conversion and compression",
+  dependenciesTitle: "Dependencies",
+  refreshStatus: "Refresh status",
+  checking: "Checking...",
+  backendCallError: "Backend call failed",
+  requiresTools: "FFmpeg and FFprobe are required.",
+  available: "Available",
+  notFound: "Not found",
+  path: "Path",
+  processError: "Error",
+  mediaInfo: "File information",
+  analyzing: "Inspecting...",
+  chooseFile: "Choose file",
+  inspectError: "Could not inspect file",
+  file: "File",
+  type: "Type",
+  video: "Video",
+  image: "Image",
+  audio: "Audio",
+  unknown: "Unknown",
+  format: "Format",
+  size: "Size",
+  bytes: "bytes",
+  duration: "Duration",
+  resolution: "Resolution",
+  videoCodec: "Video codec",
+  audioCodec: "Audio codec",
+  frameRate: "Frame rate",
+  bitrate: "Bitrate",
+  fps: "fps",
+  megabitsPerSecond: "Mbps",
+  language: "Language",
+};
+
+export type Translate = (key: TranslationKey) => string;
+
+export function translate(locale: Locale, key: TranslationKey): string {
+  return locale === "ru" ? ru[key] : en[key];
+}

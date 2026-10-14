@@ -1,11 +1,14 @@
 import { formatBytes, formatDuration } from "../../shared/formatters";
-import { MediaInfo } from "../../types";
+import type { Locale, Translate } from "../../i18n";
+import type { MediaInfo } from "../../types";
 
 interface Props {
   mediaInfo: MediaInfo | null;
   inspecting: boolean;
   error: string | null;
   onChooseFile: () => void;
+  locale: Locale;
+  t: Translate;
 }
 
 export function MediaInfoCard({
@@ -13,43 +16,48 @@ export function MediaInfoCard({
   mediaInfo,
   inspecting,
   onChooseFile,
+  locale,
+  t,
 }: Props) {
   return (
     <section className="card media-card">
       <div className="card-header">
-        <h2>Информация о файле</h2>
+        <h2>{t("mediaInfo")}</h2>
         <button onClick={onChooseFile} disabled={inspecting}>
-          {inspecting ? "Анализирую..." : "Выбрать файл"}
+          {inspecting ? t("analyzing") : t("chooseFile")}
         </button>
       </div>
 
       {error && (
-        <div className="alert error">Не удалось прочитать файл: {error}</div>
+        <div className="alert error">
+          {t("inspectError")}: {error}
+        </div>
       )}
 
       {mediaInfo && (
         <dl className="media-details">
-          <dt>Файл</dt>
+          <dt>{t("file")}</dt>
           <dd>{mediaInfo.file_path}</dd>
 
-          <dt>Тип</dt>
-          <dd>{mediaInfo.media_type}</dd>
+          <dt>{t("type")}</dt>
+          <dd>{t(mediaInfo.media_type)}</dd>
 
-          <dt>Формат</dt>
+          <dt>{t("format")}</dt>
           <dd>{mediaInfo.format_name}</dd>
 
-          <dt>Размер</dt>
-          <dd>{formatBytes(mediaInfo.size_bytes)}</dd>
+          <dt>{t("size")}</dt>
+          <dd>{formatBytes(mediaInfo.size_bytes, locale, t("bytes"))}</dd>
 
           {mediaInfo.duration_seconds !== null && (
             <>
-              <dt>Длительность</dt>
+              <dt>{t("duration")}</dt>
               <dd>{formatDuration(mediaInfo.duration_seconds)}</dd>
             </>
           )}
+
           {mediaInfo.width !== null && mediaInfo.height !== null && (
             <>
-              <dt>Разрешение</dt>
+              <dt>{t("resolution")}</dt>
               <dd>
                 {mediaInfo.width} × {mediaInfo.height}
               </dd>
@@ -58,29 +66,37 @@ export function MediaInfoCard({
 
           {mediaInfo.video_codec && (
             <>
-              <dt>Видеокодек</dt>
+              <dt>{t("videoCodec")}</dt>
               <dd>{mediaInfo.video_codec}</dd>
             </>
           )}
 
           {mediaInfo.audio_codec && (
             <>
-              <dt>Аудиокодек</dt>
+              <dt>{t("audioCodec")}</dt>
               <dd>{mediaInfo.audio_codec}</dd>
             </>
           )}
 
           {mediaInfo.fps !== null && (
             <>
-              <dt>Частота кадров</dt>
-              <dd>{mediaInfo.fps} FPS</dd>
+              <dt>{t("frameRate")}</dt>
+              <dd>
+                {mediaInfo.fps} {t("fps")}
+              </dd>
             </>
           )}
 
           {mediaInfo.bit_rate_bps !== null && (
             <>
-              <dt>Битрейт</dt>
-              <dd>{(mediaInfo.bit_rate_bps / 1_000_000).toFixed(2)} Мбит/с</dd>
+              <dt>{t("bitrate")}</dt>
+              <dd>
+                {new Intl.NumberFormat(locale === "ru" ? "ru-RU" : "en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(mediaInfo.bit_rate_bps / 1_000_000)}{" "}
+                {t("megabitsPerSecond")}
+              </dd>
             </>
           )}
         </dl>

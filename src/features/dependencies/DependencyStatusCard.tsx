@@ -1,3 +1,4 @@
+import type { Translate } from "../../i18n";
 import type { DependenciesStatus } from "../../types";
 
 interface Props {
@@ -5,6 +6,7 @@ interface Props {
   loading: boolean;
   error: string | null;
   onRefresh: () => void;
+  t: Translate;
 }
 
 export function DependencyStatusCard({
@@ -12,29 +14,30 @@ export function DependencyStatusCard({
   loading,
   error,
   onRefresh,
+  t,
 }: Props) {
   return (
     <section className="card">
       <div className="card-header">
-        <h2>Системные зависимости</h2>
+        <h2>{t("dependenciesTitle")}</h2>
         <button onClick={onRefresh} disabled={loading}>
-          {loading ? "Проверка..." : "Обновить статус"}
+          {loading ? t("checking") : t("refreshStatus")}
         </button>
       </div>
 
       {error && (
-        <div className="alert error">Ошибка вызова бэкенда: {error}</div>
+        <div className="alert error">
+          {t("backendCallError")}: {error}
+        </div>
       )}
 
       {status && (
         <div className="deps-list">
-          <DependencyItem name="FFmpeg" status={status.ffmpeg} />
-          <DependencyItem name="FFprobe" status={status.ffprobe} />
+          <DependencyItem name="FFmpeg" status={status.ffmpeg} t={t} />
+          <DependencyItem name="FFprobe" status={status.ffprobe} t={t} />
 
           {!status.all_available && (
-            <div className="alert warning">
-              Для работы приложения требуются FFmpeg и FFprobe.
-            </div>
+            <div className="alert warning">{t("requiresTools")}</div>
           )}
         </div>
       )}
@@ -45,20 +48,30 @@ export function DependencyStatusCard({
 function DependencyItem({
   name,
   status,
+  t,
 }: {
   name: string;
   status: DependenciesStatus["ffmpeg"];
+  t: Translate;
 }) {
   return (
     <div className={`dep-item ${status.available ? "ok" : "fail"}`}>
       <div className="dep-title">
         <strong>{name}:</strong>{" "}
-        <span>{status.available ? "Доступен" : "Не найден"}</span>
+        <span>{status.available ? t("available") : t("notFound")}</span>
       </div>
 
       {status.version && <div className="dep-detail">{status.version}</div>}
-      {status.path && <div className="dep-path">Путь: {status.path}</div>}
-      {status.error && <div className="dep-error">Ошибка: {status.error}</div>}
+      {status.path && (
+        <div className="dep-path">
+          {t("path")}: {status.path}
+        </div>
+      )}
+      {status.error && (
+        <div className="dep-error">
+          {t("processError")}: {status.error}
+        </div>
+      )}
     </div>
   );
 }

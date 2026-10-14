@@ -146,3 +146,26 @@ button:disabled {
   margin: 0;
   overflow-wrap: anywhere;
 }
+
+.language-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #94a3b8;
+}
+
+.language-control select {
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  color: #f1f5f9;
+  background: #1e293b;
+  font: inherit;
+}
+
+@media (max-width: 520px) {
+  header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
