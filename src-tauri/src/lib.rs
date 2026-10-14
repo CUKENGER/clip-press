@@ -67,6 +67,7 @@ pub fn run() {
     tauri::Builder::default()
         // Плагин для безопасного открытия ссылок в системном браузере
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         // `generate_handler!` - макрос Tauri, создающий диспетчер команд.
         // Здесь мы перечисляем через запятую все функции с атрибутом `#[tauri::command]`.
         .invoke_handler(tauri::generate_handler![
